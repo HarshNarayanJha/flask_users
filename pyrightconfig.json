@@ -1,0 +1,6 @@
+{
+  "reportMissingTypeStubs": false,
+  "typeCheckingMode": "standard",
+  "venvPath": "/home/harshnj/.pyenv/versions",
+  "venv": "flask-users"
+}
