@@ -1,4 +1,5 @@
 import json
+from typing import Dict, Union
 
 from flask import Response, request
 from flask_restful import Resource
@@ -8,56 +9,93 @@ from app.models import User
 
 
 class UsersApi(Resource):
+    """API resource for managing multiple users."""
+
     def get(self):
+        """Retrieve all users from the database.
+
+        Returns:
+            List of user objects in JSON format
+        """
         users = User.objects()
         user_list = [json.loads(u.to_json()) for u in users]
         return user_list, 200
 
     def post(self):
+        """Create a new user."""
+
         data = request.get_json()
 
-        if "name" not in data:
-            return {"message": "The 'name' field is required"}, 400
+        required_fields = ["name", "email", "password"]
+        for field in required_fields:
+            if field not in data:
+                return {"message": f"The '{field}' field is required"}, 400
 
-        if "email" not in data:
-            return {"message": "The 'email' field is required"}, 400
-
-        if "password" not in data:
-            return {"message": "The 'password' field is required"}, 400
-
-        user: User = User(**data)
+        user = User(**data)
         try:
             user.validate()
             user.hash_password()
             user.save()
         except ValidationError as e:
-            return {"message": "validation error", "error": e.to_dict()}, 400
+            return {"message": "Validation error", "error": e.to_dict()}, 400
         except NotUniqueError:
-            return {"message": "a user with this email already exists", "value": user.email}, 400
+            return {"message": "A user with this email already exists", "value": user.email}, 400
 
-        return {"message": "user created successfully", "user": json.loads(user.to_json())}, 201
+        return {"message": "User created successfully", "user": json.loads(user.to_json())}, 201
 
 
 class UserApi(Resource):
-    def get(self, id: str):
+    """API resource for managing individual user operations."""
+
+    def _get_user(self, user_id: str) -> Union[tuple[Dict, int], User]:
+        """Helper method to retrieve a user by ID.
+
+        Args:
+            user_id: The ID of the user to retrieve.
+
+        Returns:
+            Either a User object or an error response tuple.
+        """
         try:
-            user = User.objects.get(id=id)
+            return User.objects.get(id=user_id)
         except ValidationError as e:
             return {"message": e.message}, 400
-        except DoesNotExist as e:
-            return {"message": str(e)}, 404
+        except DoesNotExist:
+            return {"message": f"User with ID {user_id} not found"}, 404
+
+    def get(self, id: str):
+        """Retrieve a specific user by ID.
+
+        Args:
+            id: The ID of the user to retrieve.
+
+        Returns:
+            User data or error message.
+        """
+        user_or_error = self._get_user(id)
+        user = user_or_error if isinstance(user_or_error, User) else None
+
+        if not user:
+            return user_or_error
 
         return Response(user.to_json(), mimetype="application/json", status=200)
 
     def put(self, id: str):
+        """Update a specific user by ID.
+
+        Args:
+            id: The ID of the user to update.
+
+        Returns:
+            Response message with updated user data or error.
+        """
         data = request.get_json()
 
-        try:
-            user = User.objects.get(id=id)
-        except ValidationError as e:
-            return {"message": e.message}, 400
-        except DoesNotExist as e:
-            return {"message": str(e)}, 404
+        user_or_error = self._get_user(id)
+        user = user_or_error if isinstance(user_or_error, User) else None
+
+        if not user:
+            return user_or_error
 
         try:
             user.update(**data)
@@ -65,23 +103,31 @@ class UserApi(Resource):
             if "password" in data:
                 user.hash_password()
             user.save()
-
         except ValidationError as e:
-            return {"message": "validation error", "error": e.to_dict()}, 400
+            return {"message": "Validation error", "error": e.to_dict()}, 400
         except NotUniqueError:
-            return {"message": "a user with this email already exists", "value": data["email"]}, 400
+            return {"message": "A user with this email already exists", "value": data.get("email")}, 400
 
-        user = User.objects.get(id=id)
-        return {"message": "user updated successfully", "user": json.loads(user.to_json())}, 200
+        updated_user = User.objects.get(id=id)
+        return {"message": "User updated successfully", "user": json.loads(updated_user.to_json())}, 200
 
     def delete(self, id: str):
-        try:
-            user = User.objects.get(id=id)
-        except ValidationError as e:
-            return {"message": e.message}, 400
-        except DoesNotExist as e:
-            return {"message": str(e)}, 404
+        """Delete a specific user by ID.
 
+        Args:
+            id: The ID of the user to delete.
+
+        Returns:
+            Response message with deleted user data or error.
+        """
+
+        user_or_error = self._get_user(id)
+        user = user_or_error if isinstance(user_or_error, User) else None
+
+        if not user:
+            return user_or_error
+
+        user_data = json.loads(user.to_json())
         user.delete()
 
-        return {"message": "user deleted successfully", "user": json.loads(user.to_json())}, 200
+        return {"message": "User deleted successfully", "user": user_data}, 200
