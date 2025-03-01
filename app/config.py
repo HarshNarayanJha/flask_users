@@ -7,11 +7,6 @@ load_dotenv()
 
 
 class Config:
-    """Configuration class for application settings.
-
-    Attributes:
-        MONGODB_URI (str): MongoDB connection string. Defaults to local MongoDB
-                          instance if not specified in environment variables.
-    """
+    """Configuration class for application settings."""
 
     MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/users_db")

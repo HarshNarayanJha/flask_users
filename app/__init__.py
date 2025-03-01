@@ -26,7 +26,11 @@ def create_app():
     api = Api(api_bp)
     setup_resources(api)
 
-    app.register_blueprint(api_bp, url_prefix="/api")
+    app.register_blueprint(api_bp, url_prefix="/api/v1")
+
+    @app.route("/")
+    def hello() -> str:
+        return "Hello! This is a Users API in Flask and MongoDB"
 
     Bcrypt(app)
 
