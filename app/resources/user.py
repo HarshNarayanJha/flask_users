@@ -2,6 +2,7 @@ import json
 from typing import Dict, Union
 
 from flask import Response, request
+from flask import current_app as app
 from flask_restful import Resource
 from mongoengine import DoesNotExist, NotUniqueError, ValidationError
 
@@ -41,6 +42,7 @@ class UsersApi(Resource):
         except NotUniqueError:
             return {"message": "A user with this email already exists", "value": user.email}, 400
 
+        app.logger.info(f"new user created: {user.id} {user.name} <{user.email}>")
         return {"message": "User created successfully", "user": json.loads(user.to_json())}, 201
 
 
@@ -109,6 +111,7 @@ class UserApi(Resource):
             return {"message": "A user with this email already exists", "value": data.get("email")}, 400
 
         updated_user = User.objects.get(id=id)
+        app.logger.info(f"user updated: {user.id} {user.name} <{user.email}>")
         return {"message": "User updated successfully", "user": json.loads(updated_user.to_json())}, 200
 
     def delete(self, id: str):
@@ -130,4 +133,5 @@ class UserApi(Resource):
         user_data = json.loads(user.to_json())
         user.delete()
 
+        app.logger.info(f"user deleted: {user.id}")
         return {"message": "User deleted successfully", "user": user_data}, 200
