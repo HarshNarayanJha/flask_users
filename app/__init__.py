@@ -1,21 +1,17 @@
 from logging.config import dictConfig
 
 from flask import Blueprint, Flask
-from flask_bcrypt import Bcrypt
 from flask_restful import Api
 
 from app.config import Config
 from app.db import connect_mongo
+from app.extensions import bcrypt, limiter
 from app.resources.routes import setup_resources
 
 
 def create_app():
     """
     Factory function that creates and configures the Flask application.
-
-    This function initializes a new Flask application, sets up logging, loads configuration from the
-    Config object, establishes the database connection, sets up the API routes,
-    and registers the necessary extensions.
 
     Returns:
         Flask: The configured Flask application instance ready to be run.
@@ -44,10 +40,11 @@ def create_app():
 
     app.register_blueprint(api_bp, url_prefix="/api/v1")
 
+    limiter.init_app(app)
+    bcrypt.init_app(app)
+
     @app.route("/")
     def hello() -> str:
         return "Hello! This is a Users API in Flask and MongoDB"
-
-    Bcrypt(app)
 
     return app

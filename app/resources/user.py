@@ -6,11 +6,14 @@ from flask import current_app as app
 from flask_restful import Resource
 from mongoengine import DoesNotExist, NotUniqueError, ValidationError
 
+from app.extensions import limiter
 from app.models import User
 
 
 class UsersApi(Resource):
     """API resource for managing multiple users."""
+
+    decorators = [limiter.limit("30 per minute")]
 
     def get(self):
         """Retrieve all users from the database.
@@ -48,6 +51,8 @@ class UsersApi(Resource):
 
 class UserApi(Resource):
     """API resource for managing individual user operations."""
+
+    decorators = [limiter.limit("10 per minute")]
 
     def _get_user(self, user_id: str) -> Union[tuple[Dict, int], User]:
         """Helper method to retrieve a user by ID.
