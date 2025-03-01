@@ -20,6 +20,8 @@ Flask Users API provides a complete backend solution for user management with th
 - **Flask-Bcrypt**: Password hashing extension for secure authentication
 - **MongoDB**: NoSQL database for data storage
 - **MongoEngine**: MongoDB ODM (Object Document Mapper) for Python
+- **Docker**: Containerization platform
+- **Docker Compose**: Tool for defining and running multi-container Docker applications
 
 ## API Endpoints
 
@@ -49,6 +51,8 @@ Flask Users API provides a complete backend solution for user management with th
 
 ## Setup and Installation
 
+### Development Setup
+
 1. Clone the repository
 2. Install dependencies:
    ```sh
@@ -60,10 +64,26 @@ Flask Users API provides a complete backend solution for user management with th
    MONGODB_URL="mongodb://localhost:PORT"
    ```
 
-4. Run the application:
+4. Run the application in development mode:
    ```sh
-   flask run
+   python run.py
    ```
+
+### Production Setup with Docker
+
+1. Clone the repository
+2. Make sure Docker and Docker Compose are installed on your system
+3. Run the application using Docker Compose:
+   ```sh
+   docker compose up
+   ```
+
+This will start two services:
+
+- **api**: The Flask application
+- **db**: MongoDB database with persistent volume storage
+
+The database data will be preserved in a volume, ensuring your data persists between container restarts.
 
 ## Error Handling
 

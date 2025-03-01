@@ -1,0 +1,44 @@
+name: flask_users
+
+services:
+  api:
+    container_name: flask_users_api
+    build: .
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/users_db
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    networks:
+      - app-network
+    develop:
+      watch:
+        - path: ./app
+          action: sync
+          target: /app
+    restart: unless-stopped
+
+  db:
+    container_name: flask_users_db
+    hostname: mongo
+    image: skazuki/alpine-mongodb:latest
+    restart: always
+    networks:
+      - app-network
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=users_db
+    volumes:
+      - mongodbdata:/data/db
+
+networks:
+  app-network:
+    driver: bridge
+    name: flask_users_network
+
+volumes:
+  mongodbdata:
+    driver: local
+    name: flask_users_data
