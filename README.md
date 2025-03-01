@@ -12,12 +12,14 @@ Flask Users API provides a complete backend solution for user management with th
 - User deletion
 - Input validation
 - Error handling
+- Rate limiting (30 requests per second)
 
 ## Technology Stack
 
 - **Flask**: Lightweight web framework for Python
 - **Flask-RESTful**: Extension for building REST APIs with Flask
 - **Flask-Bcrypt**: Password hashing extension for secure authentication
+- **Flask-Limiter**: Extension for rate limiting API endpoints
 - **MongoDB**: NoSQL database for data storage
 - **MongoEngine**: MongoDB ODM (Object Document Mapper) for Python
 - **Docker**: Containerization platform
@@ -54,15 +56,14 @@ Flask Users API provides a complete backend solution for user management with th
 ### Development Setup
 
 1. Clone the repository
+   ```sh
+   git clone https://github.com/HarshNarayanJha/flask_users
+   ```
 2. Install dependencies:
    ```sh
    pip install -r requirements.txt
    ```
-3. Set up environment variables. Create a `.env` file with `MONGODB_URI`:
-
-   ```sh
-   MONGODB_URL="mongodb://localhost:PORT"
-   ```
+3. Set up environment variables. Create a `.env` file. Check out `.env.example` for reference:
 
 4. Run the application in development mode:
    ```sh
@@ -75,15 +76,17 @@ Flask Users API provides a complete backend solution for user management with th
 2. Make sure Docker and Docker Compose are installed on your system
 3. Run the application using Docker Compose:
    ```sh
-   docker compose up
+   docker compose up --build
    ```
 
 This will start two services:
 
-- **api**: The Flask application
-- **db**: MongoDB database with persistent volume storage
+- **api**: The Flask application (exposed on port 5000)
+- **db**: MongoDB database with persistent volume storage (exposed on default MongoDB port 27017)
 
 The database data will be preserved in a volume, ensuring your data persists between container restarts.
+
+After starting the containers, the API will be accessible at `http://localhost:5000`.
 
 ## Error Handling
 
@@ -93,11 +96,13 @@ The API provides detailed error responses for various scenarios:
 - Duplicate email addresses
 - User not found
 - Invalid input data
+- Rate limit exceeded
 
 ## Security
 
 - Passwords are hashed using bcrypt before storing in the database
 - Sensitive user data (passwords) are never returned in API responses
+- Rate limiting protects against brute force and DoS attacks (30 requests per second)
 
 ## Example Usage
 
